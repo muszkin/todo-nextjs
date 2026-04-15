@@ -1,3 +1,5 @@
+import { AlarmScheduler } from "@/components/AlarmScheduler";
+import { TaskForm } from "@/components/TaskForm";
 import { TaskRow } from "@/components/TaskRow";
 import { getDb } from "@/lib/db/client";
 import { listTasks } from "@/lib/tasks/service";
@@ -14,12 +16,11 @@ export default function HomePage(): React.ReactElement {
         <p className="text-text-muted">Your upcoming and overdue items.</p>
       </header>
 
+      <TaskForm />
+
       {tasks.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-surface/60 p-10 text-center">
-          <p className="text-text-muted">No tasks yet.</p>
-          <p className="mt-1 text-sm text-text-muted">
-            Create one via <code className="text-accent">POST /api/tasks</code>.
-          </p>
+          <p className="text-text-muted">No tasks yet. Add your first one above.</p>
         </div>
       ) : (
         <ul className="space-y-2">
@@ -28,6 +29,8 @@ export default function HomePage(): React.ReactElement {
           ))}
         </ul>
       )}
+
+      <AlarmScheduler tasks={tasks} />
     </section>
   );
 }
