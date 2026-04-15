@@ -1,0 +1,31 @@
+import { z } from "zod";
+import { taskStatus } from "@/lib/db/schema";
+
+export const taskStatusSchema = z.enum(taskStatus);
+
+export const createTaskInput = z.object({
+  title: z.string().trim().min(1, "title is required").max(500),
+  dueAt: z.coerce.date(),
+});
+
+export const updateTaskInput = z.object({
+  title: z.string().trim().min(1).max(500).optional(),
+  dueAt: z.coerce.date().optional(),
+  status: taskStatusSchema.optional(),
+}).refine(
+  (data) => Object.keys(data).length > 0,
+  { message: "at least one field must be provided" },
+);
+
+export const taskDto = z.object({
+  id: z.string(),
+  title: z.string(),
+  dueAt: z.string(),
+  status: taskStatusSchema,
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export type CreateTaskInput = z.infer<typeof createTaskInput>;
+export type UpdateTaskInput = z.infer<typeof updateTaskInput>;
+export type TaskDto = z.infer<typeof taskDto>;
