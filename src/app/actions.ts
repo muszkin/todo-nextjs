@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db/client";
 import { createOwnerInput } from "@/lib/schemas/owner";
+import { createTagInput } from "@/lib/schemas/tag";
 import { createTaskInput, updateTaskInput } from "@/lib/schemas/task";
 import { createOwner, deleteOwner } from "@/lib/owners/service";
+import { createTag, deleteTag } from "@/lib/tags/service";
 import { createTask, deleteTask, updateTask } from "@/lib/tasks/service";
 
 export async function createTaskAction(formData: FormData): Promise<void> {
@@ -12,6 +14,7 @@ export async function createTaskAction(formData: FormData): Promise<void> {
     title: formData.get("title"),
     dueAt: formData.get("dueAt"),
     ownerIds: formData.getAll("ownerIds"),
+    tagIds: formData.getAll("tagIds"),
     recurrence: formData.get("recurrence") || undefined,
   });
   createTask(getDb(), input);
@@ -49,5 +52,19 @@ export async function deleteOwnerAction(formData: FormData): Promise<void> {
   const id = String(formData.get("id"));
   deleteOwner(getDb(), id);
   revalidatePath("/owners");
+  revalidatePath("/");
+}
+
+export async function createTagAction(formData: FormData): Promise<void> {
+  const input = createTagInput.parse({ name: formData.get("name") });
+  createTag(getDb(), input);
+  revalidatePath("/tags");
+  revalidatePath("/");
+}
+
+export async function deleteTagAction(formData: FormData): Promise<void> {
+  const id = String(formData.get("id"));
+  deleteTag(getDb(), id);
+  revalidatePath("/tags");
   revalidatePath("/");
 }

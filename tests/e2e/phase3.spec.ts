@@ -63,7 +63,7 @@ test("export endpoint returns JSON download", async ({ page, request }) => {
   expect(resp.headers()["content-type"]).toContain("application/json");
   expect(resp.headers()["content-disposition"]).toContain("attachment");
   const body = await resp.json();
-  expect(body.version).toBe(1);
+  expect(body.version).toBe(2);
   expect(Array.isArray(body.tasks)).toBe(true);
   expect(body.tasks.some((t: { title: string }) => t.title === title)).toBe(true);
 });

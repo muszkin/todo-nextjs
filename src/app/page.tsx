@@ -5,11 +5,12 @@ import { TaskRow } from "@/components/TaskRow";
 import { taskStatus } from "@/lib/db/schema";
 import { getDb } from "@/lib/db/client";
 import { listOwners } from "@/lib/owners/service";
+import { listTags } from "@/lib/tags/service";
 import { listTasksFiltered } from "@/lib/tasks/service";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = { status?: string; owner?: string };
+type SearchParams = { status?: string; owner?: string; tag?: string };
 
 export default async function HomePage({
   searchParams,
@@ -19,10 +20,12 @@ export default async function HomePage({
   const params = await searchParams;
   const db = getDb();
   const owners = listOwners(db);
+  const tags = listTags(db);
 
   const filter: TaskFilter = {
     status: parseStatus(params.status),
     ownerId: params.owner && owners.some((o) => o.id === params.owner) ? params.owner : undefined,
+    tagId: params.tag && tags.some((t) => t.id === params.tag) ? params.tag : undefined,
   };
 
   const tasks = listTasksFiltered(db, filter);
@@ -34,8 +37,8 @@ export default async function HomePage({
         <p className="text-text-muted">Your upcoming and overdue items.</p>
       </header>
 
-      <TaskForm owners={owners} />
-      <TaskFilters current={filter} owners={owners} />
+      <TaskForm owners={owners} tags={tags} />
+      <TaskFilters current={filter} owners={owners} tags={tags} />
 
       {tasks.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-surface/60 p-10 text-center">

@@ -1,13 +1,15 @@
 import { getDb } from "@/lib/db/client";
 import { listOwners } from "@/lib/owners/service";
+import { listTags } from "@/lib/tags/service";
 import { listTasks } from "@/lib/tasks/service";
 
 export async function GET(): Promise<Response> {
   const db = getDb();
   const payload = {
     exportedAt: new Date().toISOString(),
-    version: 1,
+    version: 2,
     owners: listOwners(db),
+    tags: listTags(db),
     tasks: listTasks(db),
   };
   const filename = `todo-export-${new Date().toISOString().slice(0, 10)}.json`;

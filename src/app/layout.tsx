@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { TopNav } from "@/components/TopNav";
 import "./globals.css";
 
@@ -17,6 +18,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Todo App",
   description: "Personal todo with reminders, calendar, and owners",
+  appleWebApp: {
+    capable: true,
+    title: "Todo",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b0b12",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -28,8 +42,11 @@ export default function RootLayout({
     <html lang="pl" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-bg text-text">
         <TopNav />
-        <main className="flex-1 w-full max-w-3xl mx-auto px-6 py-10">{children}</main>
+        <main className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+          {children}
+        </main>
         <KeyboardShortcuts />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

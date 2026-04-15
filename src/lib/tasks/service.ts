@@ -2,8 +2,18 @@ import { and, asc, eq, gte, inArray, lt } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import * as schema from "@/lib/db/schema";
-import { owners, taskOwners, tasks, type OwnerRow, type TaskRow } from "@/lib/db/schema";
+import {
+  owners,
+  tags,
+  taskOwners,
+  taskTags,
+  tasks,
+  type OwnerRow,
+  type TagRow,
+  type TaskRow,
+} from "@/lib/db/schema";
 import type { OwnerDto } from "@/lib/schemas/owner";
+import type { TagDto } from "@/lib/schemas/tag";
 import type { TaskDto, UpdateTaskInput } from "@/lib/schemas/task";
 import type { RecurrenceKind } from "@/lib/db/schema";
 
@@ -11,6 +21,7 @@ type CreateTaskInput = {
   title: string;
   dueAt: Date;
   ownerIds?: string[];
+  tagIds?: string[];
   recurrence?: RecurrenceKind;
 };
 
@@ -30,28 +41,44 @@ export function listTasks(db: Db): TaskDto[] {
 
 export function listTasksFiltered(
   db: Db,
-  filter: { status?: TaskDto["status"]; ownerId?: string; from?: Date; until?: Date },
+  filter: {
+    status?: TaskDto["status"];
+    ownerId?: string;
+    tagId?: string;
+    from?: Date;
+    until?: Date;
+  },
 ): TaskDto[] {
   const conds = [];
   if (filter.status) conds.push(eq(tasks.status, filter.status));
   if (filter.from) conds.push(gte(tasks.dueAt, filter.from));
   if (filter.until) conds.push(lt(tasks.dueAt, filter.until));
 
+  const columns = {
+    id: tasks.id,
+    title: tasks.title,
+    dueAt: tasks.dueAt,
+    status: tasks.status,
+    recurrence: tasks.recurrence,
+    createdAt: tasks.createdAt,
+    updatedAt: tasks.updatedAt,
+  };
+
   let rows: TaskRow[];
   if (filter.ownerId) {
     rows = db
-      .select({
-        id: tasks.id,
-        title: tasks.title,
-        dueAt: tasks.dueAt,
-        status: tasks.status,
-        recurrence: tasks.recurrence,
-        createdAt: tasks.createdAt,
-        updatedAt: tasks.updatedAt,
-      })
+      .select(columns)
       .from(tasks)
       .innerJoin(taskOwners, eq(taskOwners.taskId, tasks.id))
       .where(and(eq(taskOwners.ownerId, filter.ownerId), ...conds))
+      .orderBy(asc(tasks.dueAt))
+      .all();
+  } else if (filter.tagId) {
+    rows = db
+      .select(columns)
+      .from(tasks)
+      .innerJoin(taskTags, eq(taskTags.taskId, tasks.id))
+      .where(and(eq(taskTags.tagId, filter.tagId), ...conds))
       .orderBy(asc(tasks.dueAt))
       .all();
   } else {
@@ -85,6 +112,7 @@ export function getTask(db: Db, id: string): TaskDto {
 export function createTask(db: Db, input: CreateTaskInput): TaskDto {
   const now = new Date();
   const ownerIds = input.ownerIds ?? [];
+  const tagIds = input.tagIds ?? [];
   const row = {
     id: randomUUID(),
     title: input.title,
@@ -100,6 +128,11 @@ export function createTask(db: Db, input: CreateTaskInput): TaskDto {
       .values(ownerIds.map((ownerId) => ({ taskId: row.id, ownerId })))
       .run();
   }
+  if (tagIds.length > 0) {
+    db.insert(taskTags)
+      .values(tagIds.map((tagId) => ({ taskId: row.id, tagId })))
+      .run();
+  }
   return getTask(db, row.id);
 }
 
@@ -107,7 +140,7 @@ export function updateTask(db: Db, id: string, input: UpdateTaskInput): TaskDto 
   const existing = db.select().from(tasks).where(eq(tasks.id, id)).get();
   if (!existing) throw new TaskNotFoundError(id);
 
-  const { ownerIds, ...rest } = input;
+  const { ownerIds, tagIds, ...rest } = input;
   if (Object.keys(rest).length > 0) {
     db.update(tasks)
       .set({ ...rest, updatedAt: new Date() })
@@ -120,6 +153,15 @@ export function updateTask(db: Db, id: string, input: UpdateTaskInput): TaskDto 
     if (ownerIds.length > 0) {
       db.insert(taskOwners)
         .values(ownerIds.map((ownerId) => ({ taskId: id, ownerId })))
+        .run();
+    }
+  }
+
+  if (tagIds !== undefined) {
+    db.delete(taskTags).where(eq(taskTags.taskId, id)).run();
+    if (tagIds.length > 0) {
+      db.insert(taskTags)
+        .values(tagIds.map((tagId) => ({ taskId: id, tagId })))
         .run();
     }
   }
@@ -174,23 +216,43 @@ export function deleteTask(db: Db, id: string): void {
 function hydrate(db: Db, rows: TaskRow[]): TaskDto[] {
   if (rows.length === 0) return [];
   const ids = rows.map((r) => r.id);
-  const joins = db
+
+  const ownerJoins = db
     .select({ taskId: taskOwners.taskId, owner: owners })
     .from(taskOwners)
     .innerJoin(owners, eq(taskOwners.ownerId, owners.id))
     .where(inArray(taskOwners.taskId, ids))
     .all();
 
-  const byTask = new Map<string, OwnerDto[]>();
-  for (const j of joins) {
-    const arr = byTask.get(j.taskId) ?? [];
+  const tagJoins = db
+    .select({ taskId: taskTags.taskId, tag: tags })
+    .from(taskTags)
+    .innerJoin(tags, eq(taskTags.tagId, tags.id))
+    .where(inArray(taskTags.taskId, ids))
+    .all();
+
+  const ownersByTask = new Map<string, OwnerDto[]>();
+  for (const j of ownerJoins) {
+    const arr = ownersByTask.get(j.taskId) ?? [];
     arr.push(toOwnerDto(j.owner));
-    byTask.set(j.taskId, arr);
+    ownersByTask.set(j.taskId, arr);
   }
-  return rows.map((r) => ({ ...toTaskDto(r), owners: byTask.get(r.id) ?? [] }));
+
+  const tagsByTask = new Map<string, TagDto[]>();
+  for (const j of tagJoins) {
+    const arr = tagsByTask.get(j.taskId) ?? [];
+    arr.push(toTagDto(j.tag));
+    tagsByTask.set(j.taskId, arr);
+  }
+
+  return rows.map((r) => ({
+    ...toTaskDto(r),
+    owners: ownersByTask.get(r.id) ?? [],
+    tags: tagsByTask.get(r.id) ?? [],
+  }));
 }
 
-function toTaskDto(row: TaskRow): Omit<TaskDto, "owners"> {
+function toTaskDto(row: TaskRow): Omit<TaskDto, "owners" | "tags"> {
   return {
     id: row.id,
     title: row.title,
@@ -204,4 +266,8 @@ function toTaskDto(row: TaskRow): Omit<TaskDto, "owners"> {
 
 function toOwnerDto(row: OwnerRow): OwnerDto {
   return { id: row.id, name: row.name, color: row.color };
+}
+
+function toTagDto(row: TagRow): TagDto {
+  return { id: row.id, name: row.name };
 }
