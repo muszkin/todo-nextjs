@@ -13,6 +13,12 @@ export function AlarmScheduler({ tasks }: { tasks: TaskDto[] }): React.ReactElem
   const firedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
     const now = Date.now();
 
@@ -29,6 +35,7 @@ export function AlarmScheduler({ tasks }: { tasks: TaskDto[] }): React.ReactElem
         firedRef.current.add(task.id);
         setAlarms((prev) => [...prev, { id: task.id, title: task.title, firedAt: Date.now() }]);
         playBeep();
+        notify(task.title);
         setTimeout(() => {
           setAlarms((prev) => prev.filter((a) => a.id !== task.id));
         }, TOAST_TTL_MS);
@@ -78,6 +85,17 @@ export function AlarmScheduler({ tasks }: { tasks: TaskDto[] }): React.ReactElem
       ))}
     </div>
   );
+}
+
+function notify(title: string): void {
+  try {
+    if (typeof window === "undefined") return;
+    if (!("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+    new Notification("Task due", { body: title, tag: title });
+  } catch {
+    // notification blocked or unsupported
+  }
 }
 
 function playBeep(): void {

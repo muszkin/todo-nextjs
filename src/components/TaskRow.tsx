@@ -38,6 +38,14 @@ export function TaskRow({ task }: { task: TaskDto }): React.ReactElement {
         </p>
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <p className="text-xs text-text-muted">{formatDue(task.dueAt)}</p>
+          {task.recurrence !== "none" && (
+            <span
+              className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-lavender/15 text-lavender"
+              title={`repeats ${task.recurrence}`}
+            >
+              ↻ {task.recurrence}
+            </span>
+          )}
           {task.owners.map((owner) => (
             <span
               key={owner.id}

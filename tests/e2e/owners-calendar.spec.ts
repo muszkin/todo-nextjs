@@ -15,7 +15,7 @@ test.describe("owners", () => {
     await page.goto("/");
     await page.getByPlaceholder("What needs doing?").fill(taskTitle);
     await page.locator('input[name="dueAt"]').fill(futureDateTimeLocal(60));
-    await page.getByText(ownerName).click();
+    await page.locator("fieldset label", { hasText: ownerName }).click();
     await page.getByRole("button", { name: "Add" }).click();
 
     const row = page.locator("li", { hasText: taskTitle });

@@ -12,6 +12,7 @@ export async function createTaskAction(formData: FormData): Promise<void> {
     title: formData.get("title"),
     dueAt: formData.get("dueAt"),
     ownerIds: formData.getAll("ownerIds"),
+    recurrence: formData.get("recurrence") || undefined,
   });
   createTask(getDb(), input);
   revalidatePath("/");

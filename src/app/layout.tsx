@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { TopNav } from "@/components/TopNav";
 import "./globals.css";
 
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-bg text-text">
         <TopNav />
         <main className="flex-1 w-full max-w-3xl mx-auto px-6 py-10">{children}</main>
+        <KeyboardShortcuts />
       </body>
     </html>
   );

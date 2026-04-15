@@ -26,6 +26,7 @@ function runMigrations(sqlite: Database.Database): void {
       title TEXT NOT NULL,
       due_at INTEGER NOT NULL,
       status TEXT NOT NULL DEFAULT 'todo',
+      recurrence TEXT NOT NULL DEFAULT 'none',
       created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
       updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
     );
@@ -46,6 +47,18 @@ function runMigrations(sqlite: Database.Database): void {
     );
     CREATE INDEX IF NOT EXISTS task_owners_owner_idx ON task_owners(owner_id);
   `);
+  addColumnIfMissing(sqlite, "tasks", "recurrence", "TEXT NOT NULL DEFAULT 'none'");
+}
+
+function addColumnIfMissing(
+  sqlite: Database.Database,
+  table: string,
+  column: string,
+  definition: string,
+): void {
+  const cols = sqlite.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (cols.some((c) => c.name === column)) return;
+  sqlite.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
 }
 
 export function createTestDb(): BetterSQLite3Database<typeof schema> {

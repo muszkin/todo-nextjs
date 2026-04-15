@@ -1,4 +1,5 @@
 import { createTaskAction } from "@/app/actions";
+import { recurrenceKinds } from "@/lib/db/schema";
 import type { OwnerDto } from "@/lib/schemas/owner";
 
 export function TaskForm({ owners }: { owners: OwnerDto[] }): React.ReactElement {
@@ -22,6 +23,18 @@ export function TaskForm({ owners }: { owners: OwnerDto[] }): React.ReactElement
           required
           className="bg-surface-2 border border-border rounded-xl px-3 py-2 text-text focus:outline-none focus:border-accent"
         />
+        <select
+          name="recurrence"
+          defaultValue="none"
+          aria-label="Recurrence"
+          className="bg-surface-2 border border-border rounded-xl px-3 py-2 text-text focus:outline-none focus:border-accent"
+        >
+          {recurrenceKinds.map((r) => (
+            <option key={r} value={r}>
+              {r === "none" ? "no repeat" : r}
+            </option>
+          ))}
+        </select>
         <button
           type="submit"
           className="rounded-xl bg-accent/20 text-accent border border-accent/40 px-4 py-2 font-medium hover:bg-accent/30 transition-colors"

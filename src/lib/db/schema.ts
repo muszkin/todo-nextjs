@@ -4,6 +4,9 @@ import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core"
 export const taskStatus = ["todo", "done", "not_do"] as const;
 export type TaskStatus = (typeof taskStatus)[number];
 
+export const recurrenceKinds = ["none", "daily", "weekly"] as const;
+export type RecurrenceKind = (typeof recurrenceKinds)[number];
+
 export const ownerColors = ["mint", "lavender", "peach", "sky", "rose"] as const;
 export type OwnerColor = (typeof ownerColors)[number];
 
@@ -12,6 +15,7 @@ export const tasks = sqliteTable("tasks", {
   title: text("title").notNull(),
   dueAt: integer("due_at", { mode: "timestamp_ms" }).notNull(),
   status: text("status", { enum: taskStatus }).notNull().default("todo"),
+  recurrence: text("recurrence", { enum: recurrenceKinds }).notNull().default("none"),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .default(sql`(unixepoch() * 1000)`),

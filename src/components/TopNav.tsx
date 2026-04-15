@@ -18,7 +18,7 @@ export function TopNav(): React.ReactElement {
         <Link href="/" className="font-semibold tracking-tight text-lavender">
           ✦ Todo
         </Link>
-        <ul className="flex items-center gap-1">
+        <ul className="flex items-center gap-1 flex-1">
           {links.map((link) => {
             const active = pathname === link.href;
             return (
@@ -38,6 +38,14 @@ export function TopNav(): React.ReactElement {
             );
           })}
         </ul>
+        <a
+          href="/api/export"
+          download
+          className="text-xs text-text-muted hover:text-accent transition-colors"
+          title="Download all data as JSON"
+        >
+          ⤓ export
+        </a>
       </nav>
     </header>
   );
