@@ -46,6 +46,19 @@ function runMigrations(sqlite: Database.Database): void {
       PRIMARY KEY (task_id, owner_id)
     );
     CREATE INDEX IF NOT EXISTS task_owners_owner_idx ON task_owners(owner_id);
+
+    CREATE TABLE IF NOT EXISTS tags (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
+    );
+
+    CREATE TABLE IF NOT EXISTS task_tags (
+      task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+      tag_id TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+      PRIMARY KEY (task_id, tag_id)
+    );
+    CREATE INDEX IF NOT EXISTS task_tags_tag_idx ON task_tags(tag_id);
   `);
   addColumnIfMissing(sqlite, "tasks", "recurrence", "TEXT NOT NULL DEFAULT 'none'");
 }

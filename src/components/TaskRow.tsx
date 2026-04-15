@@ -26,7 +26,7 @@ export function TaskRow({ task }: { task: TaskDto }): React.ReactElement {
   const isOpen = task.status === "todo";
 
   return (
-    <li className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface px-5 py-4 hover:border-accent/60 transition-colors">
+    <li className="flex items-center justify-between gap-2 sm:gap-4 rounded-2xl border border-border bg-surface px-3 py-3 sm:px-5 sm:py-4 hover:border-accent/60 transition-colors">
       <div className="min-w-0 flex-1">
         <p
           className={
@@ -52,6 +52,14 @@ export function TaskRow({ task }: { task: TaskDto }): React.ReactElement {
               className={"px-1.5 py-0.5 rounded-full text-[10px] font-medium " + ownerBadge[owner.color]}
             >
               {owner.name}
+            </span>
+          ))}
+          {task.tags.map((tag) => (
+            <span
+              key={tag.id}
+              className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-surface-2 text-text-muted border border-border"
+            >
+              #{tag.name}
             </span>
           ))}
         </div>
@@ -106,7 +114,7 @@ function StatusButton({
         type="submit"
         aria-label={label}
         title={label}
-        className={"w-8 h-8 rounded-full text-text-muted transition-colors " + toneClass}
+        className={"w-11 h-11 sm:w-9 sm:h-9 rounded-full text-text-muted transition-colors " + toneClass}
       >
         {icon}
       </button>
@@ -122,7 +130,7 @@ function DeleteButton({ id }: { id: string }): React.ReactElement {
         type="submit"
         aria-label="Delete"
         title="Delete"
-        className="w-8 h-8 rounded-full text-text-muted hover:bg-rose/15 hover:text-rose transition-colors"
+        className="w-11 h-11 sm:w-9 sm:h-9 rounded-full text-text-muted hover:bg-rose/15 hover:text-rose transition-colors"
       >
         ✕
       </button>
