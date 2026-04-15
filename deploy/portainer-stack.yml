@@ -1,0 +1,51 @@
+# Portainer Stack: todo-next-js
+#
+# How to deploy:
+#   1. Portainer → Stacks → Add stack
+#   2. Build method: choose ONE
+#      a) "Web editor" — paste this file
+#      b) "Repository" — point to your fork, set Compose path to deploy/portainer-stack.yml
+#      c) "Upload" — upload this file
+#   3. Set environment variables in the "Environment variables" section:
+#         IMAGE         (e.g. ghcr.io/yourname/todo-next-js:latest)
+#         HOST_PORT     (e.g. 3000)
+#         TZ            (e.g. Europe/Warsaw)
+#   4. Deploy the stack
+#
+# The image must be built and pushed to a registry that the Portainer host can pull from
+# (Docker Hub, GHCR, Gitea, local registry, etc).
+# To build locally and push:
+#     docker build -t ghcr.io/<you>/todo-next-js:latest .
+#     docker push ghcr.io/<you>/todo-next-js:latest
+
+services:
+  todo:
+    image: ${IMAGE:-todo-next-js:latest}
+    container_name: todo-next-js
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: /data/app.db
+      TZ: ${TZ:-UTC}
+    volumes:
+      - todo-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:3000/api/tasks"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      # Portainer convenience
+      io.portainer.accesscontrol.teams: ""
+      # Optional: Traefik labels for reverse proxy (uncomment + edit if you use Traefik)
+      # traefik.enable: "true"
+      # traefik.http.routers.todo.rule: "Host(`todo.example.com`)"
+      # traefik.http.routers.todo.entrypoints: "websecure"
+      # traefik.http.routers.todo.tls.certresolver: "letsencrypt"
+      # traefik.http.services.todo.loadbalancer.server.port: "3000"
+
+volumes:
+  todo-data:
+    driver: local
