@@ -13,26 +13,25 @@ Volume `todo-data` persists `/data/app.db` across restarts.
 
 The recommended deployment for self-hosted is via Portainer Stacks.
 
-### 1. Build and push the image
+### 1. Image availability
 
-Portainer cannot build from a local checkout — it pulls from a registry. Build locally and push to a registry your Portainer host can reach:
+The `main` branch is auto-built and pushed to GHCR by `.github/workflows/docker.yml`:
 
-```bash
-# Docker Hub
-docker build -t <user>/todo-next-js:latest .
-docker push <user>/todo-next-js:latest
+- `ghcr.io/muszkin/todo-nextjs:latest` (main branch, amd64)
+- `ghcr.io/muszkin/todo-nextjs:main`
+- `ghcr.io/muszkin/todo-nextjs:sha-<short>` (per-commit)
+- `ghcr.io/muszkin/todo-nextjs:vX.Y.Z` (on semver tags)
 
-# or GitHub Container Registry
-docker build -t ghcr.io/<user>/todo-next-js:latest .
-docker push ghcr.io/<user>/todo-next-js:latest
-```
+Package page: https://github.com/users/muszkin/packages/container/package/todo-nextjs
 
-For multi-arch (e.g. amd64 + arm64 for a Pi):
+No manual build needed — just reference the image in your stack.
+
+If you need a custom tag or multi-arch (arm64 for Raspberry Pi), run locally:
 
 ```bash
 docker buildx create --use
 docker buildx build --platform linux/amd64,linux/arm64 \
-  -t ghcr.io/<user>/todo-next-js:latest --push .
+  -t ghcr.io/muszkin/todo-nextjs:arm64 --push .
 ```
 
 ### 2. Create the stack in Portainer
@@ -44,7 +43,7 @@ docker buildx build --platform linux/amd64,linux/arm64 \
 
    | Name        | Value                                  |
    |-------------|----------------------------------------|
-   | `IMAGE`     | `ghcr.io/<user>/todo-next-js:latest`   |
+   | `IMAGE`     | `ghcr.io/muszkin/todo-nextjs:latest`   |
    | `HOST_PORT` | `3000` (or your preferred host port)   |
    | `TZ`        | `Europe/Warsaw` (or your timezone)     |
 
