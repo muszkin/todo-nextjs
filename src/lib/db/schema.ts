@@ -1,8 +1,11 @@
 import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const taskStatus = ["todo", "done", "not_do"] as const;
 export type TaskStatus = (typeof taskStatus)[number];
+
+export const ownerColors = ["mint", "lavender", "peach", "sky", "rose"] as const;
+export type OwnerColor = (typeof ownerColors)[number];
 
 export const tasks = sqliteTable("tasks", {
   id: text("id").primaryKey(),
@@ -17,5 +20,29 @@ export const tasks = sqliteTable("tasks", {
     .default(sql`(unixepoch() * 1000)`),
 });
 
+export const owners = sqliteTable("owners", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  color: text("color", { enum: ownerColors }).notNull().default("lavender"),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
+});
+
+export const taskOwners = sqliteTable(
+  "task_owners",
+  {
+    taskId: text("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => owners.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.taskId, t.ownerId] })],
+);
+
 export type TaskRow = typeof tasks.$inferSelect;
 export type NewTaskRow = typeof tasks.$inferInsert;
+export type OwnerRow = typeof owners.$inferSelect;
+export type NewOwnerRow = typeof owners.$inferInsert;

@@ -19,8 +19,8 @@ describe("task service", () => {
   it("creates and lists tasks ordered by dueAt ASC", () => {
     const later = new Date("2026-05-01T10:00:00Z");
     const earlier = new Date("2026-04-20T08:00:00Z");
-    createTask(db, { title: "later", dueAt: later });
-    createTask(db, { title: "earlier", dueAt: earlier });
+    createTask(db, { title: "later", dueAt: later, ownerIds: [] });
+    createTask(db, { title: "earlier", dueAt: earlier, ownerIds: [] });
 
     const items = listTasks(db);
     expect(items).toHaveLength(2);
@@ -33,6 +33,7 @@ describe("task service", () => {
     const created = createTask(db, {
       title: "buy milk",
       dueAt: new Date("2026-04-20T12:00:00Z"),
+      ownerIds: [],
     });
     const fetched = getTask(db, created.id);
     expect(fetched.title).toBe("buy milk");
@@ -47,6 +48,7 @@ describe("task service", () => {
     const t = createTask(db, {
       title: "refactor",
       dueAt: new Date("2026-04-25T10:00:00Z"),
+      ownerIds: [],
     });
     const done = updateTask(db, t.id, { status: "done" });
     expect(done.status).toBe("done");
@@ -59,6 +61,7 @@ describe("task service", () => {
     const t = createTask(db, {
       title: "old",
       dueAt: new Date("2026-04-25T10:00:00Z"),
+      ownerIds: [],
     });
     const newDue = new Date("2026-04-30T15:00:00Z");
     const updated = updateTask(db, t.id, { title: "new", dueAt: newDue });
@@ -74,6 +77,7 @@ describe("task service", () => {
     const t = createTask(db, {
       title: "gone",
       dueAt: new Date("2026-04-25T10:00:00Z"),
+      ownerIds: [],
     });
     deleteTask(db, t.id);
     expect(listTasks(db)).toHaveLength(0);

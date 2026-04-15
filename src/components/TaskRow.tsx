@@ -1,4 +1,5 @@
 import { deleteTaskAction, setTaskStatusAction } from "@/app/actions";
+import type { OwnerColor } from "@/lib/db/schema";
 import type { TaskDto } from "@/lib/schemas/task";
 
 const statusStyles: Record<TaskDto["status"], string> = {
@@ -11,6 +12,14 @@ const statusLabels: Record<TaskDto["status"], string> = {
   todo: "todo",
   done: "done",
   not_do: "not-do",
+};
+
+const ownerBadge: Record<OwnerColor, string> = {
+  mint: "bg-mint/15 text-mint",
+  lavender: "bg-lavender/15 text-lavender",
+  peach: "bg-peach/15 text-peach",
+  sky: "bg-sky/15 text-sky",
+  rose: "bg-rose/15 text-rose",
 };
 
 export function TaskRow({ task }: { task: TaskDto }): React.ReactElement {
@@ -27,7 +36,17 @@ export function TaskRow({ task }: { task: TaskDto }): React.ReactElement {
         >
           {task.title}
         </p>
-        <p className="text-xs text-text-muted">{formatDue(task.dueAt)}</p>
+        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+          <p className="text-xs text-text-muted">{formatDue(task.dueAt)}</p>
+          {task.owners.map((owner) => (
+            <span
+              key={owner.id}
+              className={"px-1.5 py-0.5 rounded-full text-[10px] font-medium " + ownerBadge[owner.color]}
+            >
+              {owner.name}
+            </span>
+          ))}
+        </div>
       </div>
 
       <span

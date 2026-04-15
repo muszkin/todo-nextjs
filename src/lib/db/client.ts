@@ -31,11 +31,26 @@ function runMigrations(sqlite: Database.Database): void {
     );
     CREATE INDEX IF NOT EXISTS tasks_due_at_idx ON tasks(due_at);
     CREATE INDEX IF NOT EXISTS tasks_status_idx ON tasks(status);
+
+    CREATE TABLE IF NOT EXISTS owners (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      color TEXT NOT NULL DEFAULT 'lavender',
+      created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
+    );
+
+    CREATE TABLE IF NOT EXISTS task_owners (
+      task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+      owner_id TEXT NOT NULL REFERENCES owners(id) ON DELETE CASCADE,
+      PRIMARY KEY (task_id, owner_id)
+    );
+    CREATE INDEX IF NOT EXISTS task_owners_owner_idx ON task_owners(owner_id);
   `);
 }
 
 export function createTestDb(): BetterSQLite3Database<typeof schema> {
   const sqlite = new Database(":memory:");
+  sqlite.pragma("foreign_keys = ON");
   runMigrations(sqlite);
   return drizzle(sqlite, { schema });
 }

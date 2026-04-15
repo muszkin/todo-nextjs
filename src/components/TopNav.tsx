@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const links = [
   { href: "/", label: "Tasks" },
   { href: "/calendar", label: "Calendar" },
+  { href: "/owners", label: "Owners" },
 ] as const;
 
 export function TopNav(): React.ReactElement {
