@@ -1,0 +1,15 @@
+services:
+  todo:
+    build: .
+    image: todo-next-js:latest
+    container_name: todo-next-js
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - todo-data:/data
+    environment:
+      DATABASE_URL: /data/app.db
+
+volumes:
+  todo-data:

@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.idea
+.maister
+.claude
+data
+test-results
+playwright-report
+*.md
+.DS_Store
+.env*
+tests
